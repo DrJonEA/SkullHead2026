@@ -24,7 +24,10 @@ void LedEye::init(PicoLed::PicoLedController *p){
 	pCtr = p;
 }
 
-void LedEye::setPupil(PicoLed::Color c){
+void LedEye::setPupil(PicoLed::Color c, bool fade){
+	xPupil = c;
+	xFade = fade;
+	xFadeStep = 0;
 	if (pCtr != NULL){
 		pCtr->setPixelColor(EYE_PUPIL,  c);
 	}
@@ -44,6 +47,9 @@ void LedEye::setIris(PicoLed::Color c, EyeAnimation a){
 }
 
 void LedEye::tick(){
+	if (!pCtr){
+		return;
+	}
 	if (xAnimate == EyeStatic){
 		for (int i=EYE_IRIS; i < EYE_LEDS; i++){
 			pCtr->setPixelColor(i,  xIris);
@@ -66,6 +72,20 @@ void LedEye::tick(){
 			}
 		}
 		xStep++;
+	}
+
+	if (xFade){
+		if (xFadeStep > 100){
+			xFadeStep = 0;
+		}
+		printf("Fade %d\n", xFadeStep);
+		if (xFadeStep > 50){
+			pCtr->fadePixel(EYE_PUPIL ,  xPupil,  0.1);
+		} else {
+			pCtr->fadePixel(EYE_PUPIL ,  xOff,  0.1);
+		}
+
+		xFadeStep++;
 	}
 
 }

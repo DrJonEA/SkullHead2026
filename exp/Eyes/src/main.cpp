@@ -52,15 +52,15 @@ int main( void ) {
     for (;;){
     	for (int i=0; i < COLOUR_COUNT; i++){
     		//xNeopixels.fill( colours[i] );
-    		left.setPupil(colours[i]);
+    		left.setPupil(colours[i], true);
     		right.setPupil(colours[i]);
     		left.setIris(colours[ (i+1) % COLOUR_COUNT], EyeWithershins);
     		right.setIris(colours[ (i+1) % COLOUR_COUNT], EyeClockwise);
-    		for (int j=0; j < 20; j++) {
+    		for (int j=0; j < 200; j++) {
     			left.tick();
     			right.tick();
     			xNeopixels.show();
-    			sleep_ms(500);
+    			sleep_ms(100);
     		}
 
     	}

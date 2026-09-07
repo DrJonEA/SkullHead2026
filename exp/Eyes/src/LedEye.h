@@ -24,7 +24,7 @@ public:
 
 	void init(PicoLed::PicoLedController *p);
 
-	void setPupil(PicoLed::Color c);
+	void setPupil(PicoLed::Color c, bool fade = false);
 	void setIris(PicoLed::Color c, EyeAnimation a = EyeStatic);
 
 	void tick();
@@ -32,10 +32,13 @@ public:
 
 private:
 	PicoLed::PicoLedController *pCtr = NULL;
-	PicoLed::Color xIris;
+	PicoLed::Color xIris, xPupil;
 	EyeAnimation xAnimate;
 
 	int xStep =0;
+	bool xFade = false;
+	int xFadeStep = 0;
+
 
 	PicoLed::Color xOff = PicoLed::RGB(0,0,0);
 };
