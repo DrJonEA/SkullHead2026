@@ -4,3 +4,6 @@
 [submodule "lib/PicoLED"]
 	path = lib/PicoLED
 	url = https://github.com/ForsakenNGS/PicoLED
+[submodule "lib/pico-servo"]
+	path = lib/pico-servo
+	url = https://github.com/da-luce/pico-servo
