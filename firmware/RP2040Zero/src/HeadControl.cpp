@@ -49,10 +49,11 @@ void HeadControl::init(){
 }
 
 void HeadControl::rotate(float rad){
-	float r = rad + (M_PI / 2.0);
+	float r = rad + (M_PI / 2.0) - 0.1;
 	printf("Attempt rotate to %f radians\n", r);
 	if ((r < 0.0) || (r > M_PI)){
 		return;
 	}
-	servo_time_to_rad(&xServoPan, r, 1000000, ease_sin, NULL);
+	//servo_time_to_rad(&xServoPan, r, 1000000, ease_sin, NULL);
+	servo_time_to_rad(&xServoPan, r, 1000000, ease_in_expo, NULL);
 }

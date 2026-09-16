@@ -69,13 +69,14 @@ void LedEye::tick(){
 		for (int i=EYE_IRIS; i < EYE_LEDS; i++){
 			pCtr->setPixelColor(i,  xOff);
 		}
-		for (int i=EYE_IRIS; i < EYE_LEDS; i++){
-			for (int j = 0; j < numLights; j++){
-				int l = (i + (EYE_LEDS /numLights * j)) % EYE_LEDS;
-				if (xAnimate == EyeWithershins){
-					l = EYE_LEDS - l;
-				}
-				if (l == xStep){
+	
+		for (int j = 0; j < numLights; j++){
+			int l = (xStep + j) % (EYE_LEDS-1) + 1 ;
+			if (xAnimate == EyeWithershins){
+				l = EYE_LEDS - l;
+			}
+			for (int i=EYE_IRIS; i < EYE_LEDS; i++){
+				if (l == i){
 					pCtr->setPixelColor(l,  xIris);
 				} 
 			}

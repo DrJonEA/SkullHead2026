@@ -41,8 +41,7 @@ int main( void ) {
     LedEye right;
     left.init(&xLeftLeds);
     right.init(&xRightLeds);
-    left.setStep(2);
-
+    right.setStep(2);
 
     HeadControl::singleton()->init();
     StateEngine::singleton()->setEyes(&left, &right);
@@ -53,7 +52,7 @@ int main( void ) {
 		left.tick();
 		right.tick();
 		xNeopixels.show();
-		sleep_ms(100);
+		sleep_ms(10);
     }
 
 }
