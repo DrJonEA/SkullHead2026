@@ -46,50 +46,123 @@ void StateEngine::setNumTargets(uint t){
 	xTargets = t;
 }
 
+void StateEngine::setNoMovingTarget(){
+	xMovingTS = 0;
+	xMovingRad = 0.0;
+	xMovingMtrs = 0.0;
+}
+
+void StateEngine::setMovingTarget(float rad, float mtrs){
+	// Both xMovingRad and rad lie within [-M_PI/2, M_PI/2], so a plain
+	// subtraction gives the difference without needing to wrap.
+	xMovingRadDiff = fabsf(xMovingRad - rad);
+	//printf("Setting moving target: rad=%f, prev=%f, radDiff=%f\n", rad, xMovingRad, xMovingRadDiff);
+	xMovingRad = rad;
+	xMovingMtrs = mtrs;
+	xMovingTS = to_ms_since_boot (get_absolute_time());
+}
+
 
 bool StateEngine::isSleep(){
 	uint32_t now = to_ms_since_boot (get_absolute_time());
-	return( now > ( xStaticTS + HEAD_SLEEP_TIME));
+	if ( now > ( xStaticTS + HEAD_SLEEP_TIME) && (now > (xMovingTS + HEAD_SLEEP_TIME))){
+	//if (now > (xMovingTS + HEAD_SLEEP_TIME)){
+		return true;
+	}
+	//printf("Awake %lu < %lu or %lu < %lu\n", now, xStaticTS + HEAD_SLEEP_TIME, now, xMovingTS + HEAD_SLEEP_TIME);
+	return false;
 }
 
 PicoLed::Color StateEngine::getPupil(){
-	if (isSleep()){
-		return PicoLed::RGB(0, 0 , 0);
+	switch(xState){
+		case SkullAwake:
+			return PicoLed::RGB(0, 0 , 0xFF);
+		case SkullAsleep:
+			return PicoLed::RGB(0x90, 0 , 0);
+		case SkullWatch:
+			return PicoLed::RGB(0, 0xFF , 0);
+		case SkullHunt:
+			return PicoLed::RGB(0xFF, 0 , 0);
 	}
-	return PicoLed::RGB(0, 0 , 0xFF);
+	return PicoLed::RGB(0xFF, 0xFF , 0xFF);
 }
 
 PicoLed::Color StateEngine::getIris(){
 	if (isSleep()){
 		return PicoLed::RGB(0, 0 , 0);
 	}
-	if (xStaticMtrs < 0.5){
+	float m = 5.0;
+	if (hasStatic()) {
+		m = fmin(m, xStaticMtrs);
+	}
+	if (hasMoving()) {
+		m = fmin(m, xMovingMtrs);
+	}
+	if (m < 0.75){
 		return PicoLed::RGB(0xFF, 0 , 0);
 	}
-	if (xStaticMtrs < 0.75){
+	if (m < 1.0){
 		return PicoLed::RGB(191, 63 , 0);
 	}
-	if (xStaticMtrs < 1.0){
+	if (m < 1.5){
 		return PicoLed::RGB(127, 127 , 0);
 	}
-	if (xStaticMtrs < 1,5){
+	if (m < 2.0){
 		return PicoLed::RGB(63, 191 , 0);
 	}
 
 	return PicoLed::RGB(0, 0xFF , 0);
 }
 
+bool StateEngine::hasMoving(){
+	return xMovingTS != 0;
+}
+
+bool StateEngine::hasStatic(){
+	return xStaticTS != 0;
+}
+
 
 void StateEngine::update(){
 	if ((pLeft != NULL) && (pRight != NULL)){
-		pLeft->setPupil(getPupil());
-		pRight->setPupil(getPupil());
+		pLeft->setPupil(getPupil(), isSleep());
+		pRight->setPupil(getPupil(), isSleep());
 
 		pLeft->setIris(getIris(), EyeClockwise, xTargets);
 		pRight->setIris(getIris(), EyeWithershins, xTargets);
 	}
+	
 	if (!isSleep()){
-		HeadControl::singleton()->rotate(xStaticRad);
+		if (xState == SkullAsleep){
+			uint32_t sinceMove = to_ms_since_boot (get_absolute_time()) - xMovingTS;
+			if (sinceMove < 20 ){
+				HeadControl::singleton()->wakeAnim();
+				xState = SkullAwake;
+				xWakeCount = 0;
+			}	
+		} else {
+
+			if (hasMoving()) {
+				if (xMovingRadDiff > 0.01) {
+					//printf(">0.1 move to Rotating head to %f radians\n", xMovingRad);
+					HeadControl::singleton()->rotate(xMovingRad);
+				} else {
+					uint32_t tsd = to_ms_since_boot (get_absolute_time()) - xMovingTS;
+					if ((tsd > 300) && (xMovingRadDiff > 0.001)){
+						//printf("Time since last move > 300ms, rotating head to %f radians\n", xMovingRad);
+						HeadControl::singleton()->rotate(xMovingRad);
+					}
+				}
+			} else if (hasStatic()) {
+			HeadControl::singleton()->rotateSlow(xStaticRad);
+			}
+		}
+	} else {
+		if (xState != SkullAsleep){
+			HeadControl::singleton()->sleepAnim();
+			xState = SkullAsleep;
+		}
 	}
+	
 }
 

@@ -29,7 +29,7 @@ void SensorControl::init(){
 	kw307_check_fw_version(300);
 	kw307_set_output_default();
 	kw307_set_gain               (5);              /* +12 dB */
-	kw307_set_detect_range       (10, 1000);       /* 0.5~10 m */
+	kw307_set_detect_range       (50, 1000);       /* 0.5~10 m */
 	kw307_set_detect_fov         (120, 8);        /* 120 deg cone, shrink 8 deg/m */
 	kw307_set_motion_sensitivity    (2, 0);
 	kw307_set_stationary_sensitivity(1);
@@ -59,26 +59,33 @@ void SensorControl::handleRadar(const KW307Frame_t* f){
 		float rad = a * M_PI/180.0;
 		float mtr = (float)f->stationary[0].distance_cm / 100.0;
 		StateEngine::singleton()->setStaticTarget(rad, mtr);
-		printf("Static %.2fRad, %.2fm\n", rad, mtr);
+		//printf("Static %.2fRad, %.2fm\n", rad, mtr);
 		targets++;
 	} else {
-		if (f->moving[0].state == 3){
-			float a = (float)f->moving[0].angle_tenth/ 10.0;
-			float rad = a * M_PI/180.0;
-			float mtr = (float)f->moving[0].distance_cm / 100.0;
-			StateEngine::singleton()->setStaticTarget(rad, mtr);
-			printf("Moving %.2fRad, %.2fm\n", rad, mtr);
-		} else {
-			StateEngine::singleton()->setNoStaticTarget();
-		}
+		StateEngine::singleton()->setNoStaticTarget();
 	}
 
+	int mt = -1;
+	if (f->moving[0].state == 3){
+		mt = 0;
+	} else if (f->moving[1].state == 3){
+		mt = 1;
+	} else {
+		StateEngine::singleton()->setNoMovingTarget();
+	}
+	if (mt >= 0){
+		float a = (float)f->moving[mt].angle_tenth/ 10.0;
+		float rad = a * M_PI/180.0;
+		float mtr = (float)f->moving[mt].distance_cm / 100.0;
+		StateEngine::singleton()->setMovingTarget(rad, mtr);
+		//printf("Moving %.2fRad, %.2fm\n", rad, mtr);
+	}
 	for (int i=0; i < 2; i++){
 	   if (f->moving[i].state == 3){
 		   targets++;
 	   }
 	}
 
-	printf("Handle Radar %u\n", targets);
+	//printf("Handle Radar %u\n", targets);
 	StateEngine::singleton()->setNumTargets(targets);
 }

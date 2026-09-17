@@ -34,7 +34,10 @@ int main( void ) {
 
     stdio_init_all();
     sleep_ms(2000);
-    printf("GO\n");
+    for (int i=0; i < 10; i++){
+        printf("GO\n");
+    }
+    
 
     xNeopixels.setBrightness(30);
     LedEye left;
@@ -52,7 +55,7 @@ int main( void ) {
 		left.tick();
 		right.tick();
 		xNeopixels.show();
-		sleep_ms(10);
+		sleep_ms(100);
     }
 
 }

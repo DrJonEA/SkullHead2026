@@ -12,7 +12,14 @@
 #include "PicoLed.hpp"
 #include "LedEye.h"
 
-#define HEAD_SLEEP_TIME (10 * 1000)
+#define HEAD_SLEEP_TIME (30 * 1000)
+
+enum SkullStates {
+	SkullAwake,
+	SkullAsleep,
+	SkullWatch,
+	SkullHunt
+};
 
 class StateEngine {
 public:
@@ -25,7 +32,13 @@ public:
 	void setStaticTarget(float rad, float mtrs);
 	void setNumTargets(uint t);
 
+	void setNoMovingTarget();
+	void setMovingTarget(float rad, float mtrs);
+
 	void update();
+
+	bool hasMoving();
+	bool hasStatic();
 
 private:
 	static StateEngine *pSelf;
@@ -42,6 +55,15 @@ private:
 	float xStaticRad = 0.0;
 	float xStaticMtrs = 2.0;
 	uint8_t xTargets = 0;
+
+	uint32_t xMovingTS = 0;
+	float xMovingRad = 0.0;
+	float xMovingMtrs = 2.0;
+	float xMovingRadDiff = 0.0;
+
+	uint32_t xWakeCount = 0;
+
+	SkullStates xState = SkullAsleep;
 
 };
 

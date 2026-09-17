@@ -27,8 +27,7 @@ void LedEye::init(PicoLed::PicoLedController *p){
 void LedEye::setPupil(PicoLed::Color c, bool fade){
 	xPupil = c;
 	xFade = fade;
-	xFadeStep = 0;
-	if (pCtr != NULL){
+	if ((pCtr != NULL) && !fade){
 		pCtr->setPixelColor(EYE_PUPIL,  c);
 	}
 }
@@ -88,7 +87,7 @@ void LedEye::tick(){
 		if (xFadeStep > 100){
 			xFadeStep = 0;
 		}
-		printf("Fade %d\n", xFadeStep);
+		//printf("Fade %d\n", xFadeStep);
 		if (xFadeStep > 50){
 			pCtr->fadePixel(EYE_PUPIL ,  xPupil,  0.1);
 		} else {
